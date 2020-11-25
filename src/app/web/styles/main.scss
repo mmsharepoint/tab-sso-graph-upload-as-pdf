@@ -38,3 +38,34 @@ img.logo {
 	min-width: 76px;
 	height: auto;
 }
+
+.dropZoneBG {
+	position: relative;
+    width: 400px;
+	height: 200px;
+	margin: 15px;
+    .inner {
+      position: absolute;
+      top: 45%;
+      left: 45%;
+      color: #ccc;
+      text-align: center;
+      .icon {
+        font-size: 80px;
+      }
+    }
+}
+
+.dropZone {
+	position: absolute;
+    top: 10;
+    border: 1px solid black;
+    padding: 20px;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+}
+
+.dropZoneHighlight {
+	background-color: rgba(211, 211, 211, 0.5);
+}

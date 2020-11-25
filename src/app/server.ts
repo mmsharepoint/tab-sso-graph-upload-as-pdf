@@ -21,6 +21,7 @@ require("dotenv").config();
 
 // The import of components has to be done AFTER the dotenv config
 import * as allComponents from "./TeamsAppsComponents";
+import { graphRouter } from "./api/graphRouter";
 
 // Create the Express webserver
 const express = Express();
@@ -57,7 +58,7 @@ express.use(MsTeamsPageRouter({
     root: path.join(__dirname, "web/"),
     components: allComponents
 }));
-
+express.use("/api", graphRouter({}));
 // Set default web page
 express.use("/", Express.static(path.join(__dirname, "web/"), {
     index: "index.html"
