@@ -11,6 +11,7 @@ export interface IPdfUploaderTabState extends ITeamsBaseComponentState {
     entityId?: string;
     name?: string;
     error?: string;
+    token: string;
     highlight: boolean;
 }
 
@@ -39,15 +40,7 @@ export class PdfUploaderTab extends TeamsBaseComponent<IPdfUploaderTabProps, IPd
                 this.updateTheme(context.theme);
                 microsoftTeams.authentication.getAuthToken({
                     successCallback: (token: string) => {
-                        const decoded: { [key: string]: any; } = jwt_decode(token) as { [key: string]: any; };
-                        this.setState({ name: decoded!.name });
-                        Axios.post(`https://${process.env.HOSTNAME}/api/upload`, { }, {
-                            headers: {
-                                Authorization: `Bearer ${token}`
-                            }
-                        }).then(result => {
-                            console.log(result);
-                        });
+                        this.setState({ token: token });                        
                         microsoftTeams.appInitialization.notifySuccess();
                     },
                     failureCallback: (message: string) => {
@@ -82,6 +75,28 @@ export class PdfUploaderTab extends TeamsBaseComponent<IPdfUploaderTabProps, IPd
     }
     private dropFile = (event) => {
         this.allowDrop(event);
+        let dt = event.dataTransfer;
+        let files =  Array.prototype.slice.call(dt.files); //[...dt.files];
+        files.forEach(fileToUpload => {
+        //if (Utilities.validFileExtension(fileToUpload.name)) {
+            this.uploadFile(fileToUpload);
+        //}      
+        });
+        
+    }
+    private uploadFile = (fileToUpload: File) => {
+        let formData = new FormData();
+        formData.append('file', fileToUpload);
+        formData.append('fileName', fileToUpload.name);
+        formData.append('fileType', fileToUpload.type);
+        Axios.post(`https://${process.env.HOSTNAME}/api/upload`, formData, {
+                            headers: {
+                                'Authorization': `Bearer ${this.state.token}`,
+                                'content-type': 'multipart/form-data'
+                            }
+                        }).then(result => {
+                            console.log(result);
+                        });
     }
     /**
      * The render() method to create the UI of the tab
@@ -91,7 +106,7 @@ export class PdfUploaderTab extends TeamsBaseComponent<IPdfUploaderTabProps, IPd
             <Provider theme={this.state.theme}>
                 <div className='dropZoneBG'>
                     Drag your file here:
-                    <div className={`dropZone ${this.state.highlight?'dropZoneHighlight':''}`}
+                    <div className={ `dropZone ${this.state.highlight ? 'dropZoneHighlight' : ''}` }
                             onDragEnter={this.enableHighlight}
                             onDragLeave={this.disableHighlight}
                             onDragOver={this.allowDrop}
