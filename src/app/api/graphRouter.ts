@@ -5,6 +5,7 @@ import qs = require("querystring");
 import Axios from "axios";
 import * as debug from "debug";
 const log = debug("msteams");
+import Utilities from "./Utilities";
 
 export const graphRouter = (options: any): express.Router => {
     const router = express.Router();
@@ -86,21 +87,39 @@ export const graphRouter = (options: any): express.Router => {
         return null;
       }
     };
-    const downloadTmpFileAsPDF = async (fileID: string, accessToken: string): Promise<Blob> => {
+    const downloadTmpFileAsPDF = async (fileID: string, fileName: string, accessToken: string): Promise<any> => {
       const apiUrl = `https://graph.microsoft.com/v1.0/me/drive/items/${fileID}/content?format=PDF`; //
       return Axios.get(apiUrl, {
-                      responseType: 'blob',
+                      responseType: 'arraybuffer', // no 'blob' as 'blob' only works in browser
                       headers: {          
                           Authorization: `Bearer ${accessToken}`
                       }})
                       .then(response => {
-                          log(response);
-                          return response.data;
+                          log(response.data);
+                          const respFile = { data: response.data, name: fileName, size: response.data.length };
+                          return respFile;
                       }).catch(err => {
                           log(err);
                           return null;
                       });
-      }
+    };
+    const uploadFileToTargetSite = async (file: File, accessToken: string, domain: string, siteRelative: string, channelName: string): Promise<string> => {
+      const apiSiteUrl =`https://graph.microsoft.com/v1.0/sites/${domain}:/${siteRelative}`;
+      return Axios.get(apiSiteUrl, {        
+                headers: {          
+                    Authorization: `Bearer ${accessToken}`
+                }})
+                .then(async siteResponse => {
+                    log(siteResponse.data);
+                    const apiUrl = `https://graph.microsoft.com/v1.0/sites/${siteResponse.data.id}/drive/root:/${channelName}/${file.name}:/content`;
+                    const response = await uploadFile(apiUrl, file, accessToken);
+                    const webUrl = response.webUrl;
+                    return webUrl;
+                }).catch(err => {
+                    log(err);
+                    return null;
+                });
+    };
     router.post(
         "/upload",
         pass.authenticate("oauth-bearer", { session: false }),        
@@ -110,13 +129,11 @@ export const graphRouter = (options: any): express.Router => {
                 const accessToken = await exchangeForToken(user.tid,
                     req.header("Authorization")!.replace("Bearer ", "") as string,
                     ["https://graph.microsoft.com/files.readwrite","https://graph.microsoft.com/sites.readwrite.all"]);
-                // log(accessToken);
-                // log(req.files.file);
-                // log(req.files.file.data);
                 const tmpFileID = await uploadTmpFileToOneDrive(req.files.file, accessToken);
-
-                downloadTmpFileAsPDF(tmpFileID, accessToken);
-                res.end(accessToken);
+                const filename = Utilities.getFileNameAsPDF(req.files.file.name);
+                const pdfFile = await downloadTmpFileAsPDF(tmpFileID, filename, accessToken);
+                const webUrl = await uploadFileToTargetSite(pdfFile, accessToken, req.body.domain, req.body.sitepath, req.body.channelname);
+                res.end(webUrl);
             } catch (err) {
                 if (err.status) {
                     res.status(err.status).send(err.message);

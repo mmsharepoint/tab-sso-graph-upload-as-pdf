@@ -41,19 +41,29 @@ img.logo {
 
 .dropZoneBG {
 	position: relative;
-    width: 400px;
+  width: 400px;
 	height: 200px;
 	margin: 15px;
-    .inner {
-      position: absolute;
-      top: 45%;
-      left: 45%;
-      color: #ccc;
-      text-align: center;
-      .icon {
-        font-size: 80px;
-      }
+  .pdfLogo {
+    position: absolute;
+    top: 45%;
+    left: 45%;          
+	}
+	.loader {
+	  position: absolute;
+    top: 35%;
+	  left: 15%;
+	  text-align: center;  
+	}
+	.result {
+		position: absolute;
+    top: 35%;
+    left: 12%;
+    .icon {
+      margin-left: 6px;
+      cursor: pointer;
     }
+	}
 }
 
 .dropZone {
