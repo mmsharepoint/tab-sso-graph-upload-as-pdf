@@ -11,7 +11,7 @@ It uses the following capabilities (mostly) on behalf of Microsoft Graph:
 ## tab-sso-graph-upload-as-pdf in action
 ![File upload and PDF conversion](https://mmsharepoint.files.wordpress.com/2020/11/01fileuploadtopdf-1.gif)
 
-A detailed functionality and technical description can be found in the [author's blog post](https://mmsharepoint.wordpress.com/2020/11/10/a-simple-spfx-file-upload-by-dragdrop-including-pdf-conversion/)
+A detailed functionality and technical description can be found in the [author's blog post](https://mmsharepoint.wordpress.com/2020/11/30/dragdrop-pdf-conversion-upload-with-yoteams-tab/)
 
 ## Applies to
 
