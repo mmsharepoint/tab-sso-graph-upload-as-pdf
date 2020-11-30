@@ -120,6 +120,13 @@ export const graphRouter = (options: any): express.Router => {
                     return null;
                 });
     };
+    const deleteTmpFileFromOneDrive = async (fileID: string, accessToken: string) => {
+        const apiUrl = `https://graph.microsoft.com/v1.0/me/drive/items/${fileID}`;
+        Axios.delete(apiUrl, {        
+            headers: {          
+                Authorization: `Bearer ${accessToken}`
+            }});
+    };
     router.post(
         "/upload",
         pass.authenticate("oauth-bearer", { session: false }),        
@@ -133,6 +140,7 @@ export const graphRouter = (options: any): express.Router => {
                 const filename = Utilities.getFileNameAsPDF(req.files.file.name);
                 const pdfFile = await downloadTmpFileAsPDF(tmpFileID, filename, accessToken);
                 const webUrl = await uploadFileToTargetSite(pdfFile, accessToken, req.body.domain, req.body.sitepath, req.body.channelname);
+                deleteTmpFileFromOneDrive(tmpFileID, accessToken);
                 res.end(webUrl);
             } catch (err) {
                 if (err.status) {
